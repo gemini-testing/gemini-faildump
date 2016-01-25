@@ -1,0 +1,54 @@
+{
+  "name": "gemini-faildump",
+  "version": "1.0.0",
+  "description": "Fail information plugin",
+  "keywords": [
+    "gemini",
+    "gemini-plugin"
+  ],
+  "main": "lib/plugin.js",
+  "author": "Leonid Rudenko <leonid.a.rudenko@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gemini-testing/gemini-faildump.git"
+  },
+  "homepage": "https://github.com/gemini-testing/gemini-faildump",
+  "bugs": "https://github.com/gemini-testing/gemini-faildump/issues",
+  "license": "MIT",
+  "maintainers": [
+    {
+      "name": "Leonid Rudenko",
+      "email": "leonid.a.rudenko@gmail.com",
+      "github-username": "leonsabr"
+    }
+  ],
+  "contributors": [
+    "Leonid Rudenko <leonid.a.rudenko@gmail.com>"
+  ],
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "scripts": {
+    "test": "npm run lint && npm run unit-test",
+    "lint": "jshint . && jscs .",
+    "unit-test": "istanbul test _mocha --recursive test/lib"
+  },
+  "dependencies": {
+    "inherit": "~2.2.1",
+    "lodash": "^3.10.1",
+    "looks-same": "2.2.2",
+    "q": "^1.1.2",
+    "q-io": "^1.13.2"
+  },
+  "devDependencies": {
+    "chai": "^3.3.0",
+    "chai-as-promised": "^5.1.0",
+    "coveralls": "^2.11.4",
+    "istanbul": "^0.3.20",
+    "jscs": "^2.1.1",
+    "jshint": "^2.8.0",
+    "mocha": "^2.3.3",
+    "sinon": "^1.16.1",
+    "sinon-chai": "^2.8.0"
+  }
+}
