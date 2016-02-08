@@ -6,7 +6,7 @@ normal and not included in the final report.
 
 ## Installation
 
-`npm gemini-faildump`
+`npm i gemini-faildump`
 
 ## Configuration
 
@@ -16,4 +16,9 @@ Set the configuration to your `.gemini.yml`
 system:
   plugins:
     gemini-faildump:
+      light: true
 ```
+
+## Options
+
+ - `light` - switch on this option to avoid adding base64 image to report.
