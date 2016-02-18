@@ -48,6 +48,15 @@ describe('error factory', function() {
                 });
         });
 
+        it('should not create ImageError instance if it is impossible to save image', function() {
+            var failedTestError = mkErrorStub({name: 'StateError'}); // without image
+
+            return errorFactory.buildError(failedTestError, config, {})
+                .then(function(errorData) {
+                    assert.notInstanceOf(errorData, ImageError);
+                });
+        });
+
         it('should create ImageError instance for diff errors', function() {
             var failedTestError = mkDiffErrorStub();
 
