@@ -4,22 +4,22 @@ var _ = require('lodash'),
     q = require('q');
 
 var errorDefaults = {
-        suite: {fullName: 'suite-fullname'},
-        state: {name: 'state-name'},
+        suite: { fullName: 'suite-fullname' },
+        state: { name: 'state-name' },
         browserId: 'browserId'
     };
 
 module.exports = {
-    mkErrorStub: function(opts) {
+    mkErrorStub: function (opts) {
         opts = opts || {};
         return _.defaults(opts, errorDefaults);
     },
 
-    mkConfigStub: function(opts) {
+    mkConfigStub: function (opts) {
         opts = opts || {};
         var defaults = {
             getBrowserIds: sinon.stub().returns([opts.browserId || 'default-browser']),
-            forBrowser: function(id) {
+            forBrowser: function (id) {
                 return {
                     id: opts.browserId || 'default-browser',
                     retry: opts.retry || 0,
@@ -27,11 +27,11 @@ module.exports = {
                     desiredCapabilities: {}
                 };
             }
-        }
+        };
         return _.defaults(opts, defaults);
     },
 
-    mkStateErrorStub: function() {
+    mkStateErrorStub: function () {
         return _.defaults({
             name: 'StateError',
             image: {
@@ -40,7 +40,7 @@ module.exports = {
         }, errorDefaults);
     },
 
-    mkDiffErrorStub: function() {
+    mkDiffErrorStub: function () {
         return _.defaults({
             equal: false,
             saveDiffTo: sinon.stub().returns(q())
