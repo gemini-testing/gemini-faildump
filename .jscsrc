@@ -2,8 +2,7 @@
   "excludeFiles": [
     ".git",
     "coverage",
-    "node_modules",
-    "test"
+    "node_modules"
   ],
   "requireCurlyBraces": ["if", "else", "for", "while", "do", "try", "catch"],
   "requireSpaceAfterKeywords": ["if", "else", "for", "while", "do", "switch", "return", "try", "catch"],

@@ -12,115 +12,115 @@ var q = require('q'),
     mkStateErrorStub = utils.mkStateErrorStub,
     mkDiffErrorStub = utils.mkDiffErrorStub;
 
-describe('error factory', function() {
+describe('error factory', function () {
     var config;
 
-    beforeEach(function() {
+    beforeEach(function () {
         config = utils.mkConfigStub();
     });
 
-    it('should return instance of BaseError by default', function() {
+    it('should return instance of BaseError by default', function () {
         var failedTestError = mkErrorStub();
 
         return errorFactory.buildError(failedTestError, config)
-            .then(function(errorData) {
+            .then(function (errorData) {
                 assert.instanceOf(errorData, BaseError);
             });
     });
 
-    describe('ImageError', function() {
+    describe('ImageError', function () {
         var sandbox = sinon.sandbox.create();
 
-        beforeEach(function() {
+        beforeEach(function () {
             sandbox.stub(imageProcessor, 'pngToBase64').returns(q());
         });
 
-        afterEach(function() {
+        afterEach(function () {
             sandbox.restore();
         });
 
-        it('should create ImageError instance for state errors', function() {
+        it('should create ImageError instance for state errors', function () {
             var failedTestError = mkStateErrorStub();
 
             return errorFactory.buildError(failedTestError, config, {})
-                .then(function(errorData) {
+                .then(function (errorData) {
                     assert.instanceOf(errorData, ImageError);
                 });
         });
 
-        it('should not create ImageError instance if it is impossible to save image', function() {
-            var failedTestError = mkErrorStub({name: 'StateError'}); // without image
+        it('should not create ImageError instance if it is impossible to save image', function () {
+            var failedTestError = mkErrorStub({ name: 'StateError' }); // without image
 
             return errorFactory.buildError(failedTestError, config, {})
-                .then(function(errorData) {
+                .then(function (errorData) {
                     assert.notInstanceOf(errorData, ImageError);
                 });
         });
 
-        it('should create ImageError instance for diff errors', function() {
+        it('should create ImageError instance for diff errors', function () {
             var failedTestError = mkDiffErrorStub();
 
             return errorFactory.buildError(failedTestError, config, {})
-                .then(function(errorData) {
+                .then(function (errorData) {
                     assert.instanceOf(errorData, ImageError);
                 });
         });
 
-        describe('should save screenshot of the test failed with', function() {
-            it('StateError error type', function() {
+        describe('should save screenshot of the test failed with', function () {
+            it('StateError error type', function () {
                 var failedTestError = mkStateErrorStub();
 
                 return errorFactory.buildError(failedTestError, config, {})
-                    .then(function(errorData) {
+                    .then(function (errorData) {
                         assert.calledOnce(failedTestError.image.save);
                     });
             });
 
-            it('Diff error type', function() {
+            it('Diff error type', function () {
                 var failedTestError = mkDiffErrorStub();
 
                 return errorFactory.buildError(failedTestError, config, {})
-                    .then(function(errorData) {
+                    .then(function (errorData) {
                         assert.calledOnce(failedTestError.saveDiffTo);
                     });
             });
         });
 
-        it('should convert image to base64 by default', function() {
+        it('should convert image to base64 by default', function () {
             var failedTestError = mkDiffErrorStub();
 
             return errorFactory.buildError(failedTestError, config, {})
-                .then(function(errorData) {
+                .then(function (errorData) {
                     assert.calledOnce(imageProcessor.pngToBase64);
                 });
         });
 
-        it('should not convert image to base64 if "light" option exist', function() {
+        it('should not convert image to base64 if "light" option exist', function () {
             var failedTestError = mkDiffErrorStub();
 
-            return errorFactory.buildError(failedTestError, config, {light: true})
-                .then(function(errorData) {
+            return errorFactory.buildError(failedTestError, config, { light: true })
+                .then(function (errorData) {
                     assert.notCalled(imageProcessor.pngToBase64);
                 });
         });
 
-        describe('image path', function() {
-            it('should generate temp directory for image', function() {
+        describe('image path', function () {
+            it('should generate temp directory for image', function () {
                 sandbox.stub(temp, 'mkdirSync').returns('tempDir');
                 var failedTestError = mkDiffErrorStub();
 
                 return errorFactory.buildError(failedTestError, config, {})
-                    .then(function(errorData) {
+                    .then(function (errorData) {
                         assert.match(errorData.imagePath, /tempDir/);
                     });
             });
 
-            it('should generate temp path for image', function() {
+            it('should generate temp path for image', function () {
                 sandbox.stub(temp, 'path').returns('tempPath');
                 var failedTestError = mkDiffErrorStub();
 
                 return errorFactory.buildError(failedTestError, config, {})
-                    .then(function(errorData) {
+                    .then(function (errorData) {
                         assert.equal(errorData.imagePath, 'tempPath');
                     });
             });
