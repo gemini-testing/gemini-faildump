@@ -1,7 +1,7 @@
 'use strict';
 
 var q = require('q'),
-    temp = require('temp'),
+    tempFS = require('../../../lib/temp-fs'),
     errorFactory = require('../../../lib/errors/error-factory'),
     ImageError = require('../../../lib/errors/image-error'),
     BaseError = require('../../../lib/errors/base-error'),
@@ -66,24 +66,13 @@ describe('error factory', function() {
                 });
         });
 
-        describe('should save screenshot of the test failed with', function() {
-            it('StateError error type', function() {
-                var failedTestError = mkStateErrorStub();
+        it('should save screenshot of the test failed with diff error type', function () {
+            var failedTestError = mkDiffErrorStub();
 
-                return errorFactory.buildError(failedTestError, config, {})
-                    .then(function(errorData) {
-                        assert.calledOnce(failedTestError.image.save);
-                    });
-            });
-
-            it('Diff error type', function() {
-                var failedTestError = mkDiffErrorStub();
-
-                return errorFactory.buildError(failedTestError, config, {})
-                    .then(function(errorData) {
-                        assert.calledOnce(failedTestError.saveDiffTo);
-                    });
-            });
+            return errorFactory.buildError(failedTestError, config, {})
+                .then(function(errorData) {
+                    assert.calledOnce(failedTestError.saveDiffTo);
+                });
         });
 
         it('should convert image to base64 by default', function() {
@@ -104,26 +93,23 @@ describe('error factory', function() {
                 });
         });
 
-        describe('image path', function() {
-            it('should generate temp directory for image', function() {
-                sandbox.stub(temp, 'mkdirSync').returns('tempDir');
-                var failedTestError = mkDiffErrorStub();
+        it('should use imagePath for converting failed image to base64', function () {
+            var failedTestError = mkStateErrorStub();
 
-                return errorFactory.buildError(failedTestError, config, {})
-                    .then(function(errorData) {
-                        assert.match(errorData.imagePath, /tempDir/);
-                    });
-            });
+            return errorFactory.buildError(failedTestError, config, {})
+                .then(function(errorData) {
+                    assert.calledWith(imageProcessor.pngToBase64, failedTestError.imagePath);
+                });
+        });
 
-            it('should generate temp path for image', function() {
-                sandbox.stub(temp, 'path').returns('tempPath');
-                var failedTestError = mkDiffErrorStub();
+        it('should generate temporary path for image', function() {
+            sandbox.stub(tempFS, 'resolveImagePath').returns('tempPath');
+            var failedTestError = mkDiffErrorStub();
 
-                return errorFactory.buildError(failedTestError, config, {})
-                    .then(function(errorData) {
-                        assert.equal(errorData.imagePath, 'tempPath');
-                    });
-            });
+            return errorFactory.buildError(failedTestError, config, {})
+                .then(function(errorData) {
+                    assert.equal(errorData.imagePath, 'tempPath');
+                });
         });
     });
 });
