@@ -34,9 +34,7 @@ module.exports = {
     mkStateErrorStub: function() {
         return _.defaults({
             name: 'StateError',
-            image: {
-                save: sinon.stub().returns(q())
-            }
+            imagePath: '/some/path/to/image'
         }, errorDefaults);
     },
 
