@@ -1,25 +1,26 @@
 'use strict';
 
-var _ = require('lodash'),
-    q = require('q');
+const q = require('q');
+const _ = require('lodash');
 
-var errorDefaults = {
-        suite: {fullName: 'suite-fullname'},
-        state: {name: 'state-name'},
-        browserId: 'browserId'
-    };
+const errorDefaults = {
+    suite: {fullName: 'suite-fullname'},
+    state: {name: 'state-name'},
+    browserId: 'browserId'
+};
 
 module.exports = {
-    mkErrorStub: function(opts) {
+    mkErrorStub: (opts) => {
         opts = opts || {};
+
         return _.defaults(opts, errorDefaults);
     },
 
-    mkConfigStub: function(opts) {
+    mkConfigStub: (opts) => {
         opts = opts || {};
-        var defaults = {
+        const defaults = {
             getBrowserIds: sinon.stub().returns([opts.browserId || 'default-browser']),
-            forBrowser: function(id) {
+            forBrowser: () => {
                 return {
                     id: opts.browserId || 'default-browser',
                     retry: opts.retry || 0,
@@ -27,19 +28,23 @@ module.exports = {
                     desiredCapabilities: {}
                 };
             }
-        }
+        };
         return _.defaults(opts, defaults);
     },
 
-    mkStateErrorStub: function() {
-        return _.defaults({
+    mkStateErrorStub: (opts) => {
+        opts = opts || {};
+
+        return _.defaults(opts, {
             name: 'StateError',
             imagePath: '/some/path/to/image'
         }, errorDefaults);
     },
 
-    mkDiffErrorStub: function() {
-        return _.defaults({
+    mkDiffErrorStub: (opts) => {
+        opts = opts || {};
+
+        return _.defaults(opts, {
             equal: false,
             saveDiffTo: sinon.stub().returns(q())
         }, errorDefaults);

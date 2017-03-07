@@ -1,156 +1,207 @@
 'use strict';
 
-var q = require('q'),
-    fs = require('q-io/fs'),
+const q = require('q');
+const fs = require('q-io/fs');
 
-    FailCollector = require('../../lib/fail-collector'),
-    BaseError = require('../../lib/errors/base-error'),
-    ImageError = require('../../lib/errors/image-error'),
-    imageProcessor = require('../../lib/image-processor'),
+const FailCollector = require('../../lib/fail-collector');
+const BaseError = require('../../lib/errors/base-error');
+const ImageError = require('../../lib/errors/image-error');
+const imageProcessor = require('../../lib/image-processor');
+const tempFS = require('../../lib/temp-fs');
 
-    utils = require('./utils'),
-    mkErrorStub = utils.mkErrorStub,
-    mkDiffErrorStub = utils.mkDiffErrorStub,
-    mkStateErrorStub = utils.mkStateErrorStub,
-    mkConfigStub = utils.mkConfigStub;
+const utils = require('./utils');
+const mkErrorStub = utils.mkErrorStub;
+const mkDiffErrorStub = utils.mkDiffErrorStub;
+const mkStateErrorStub = utils.mkStateErrorStub;
+const mkConfigStub = utils.mkConfigStub;
 
-describe('fail-collector', function() {
-    var sandbox = sinon.sandbox.create();
+describe('fail-collector', () => {
+    const sandbox = sinon.sandbox.create();
 
-    beforeEach(function() {
+    beforeEach(() => {
         sandbox.stub(imageProcessor);
         imageProcessor.pngToBase64.returns(q());
         sandbox.stub(fs);
     });
 
-    afterEach(function() {
-        sandbox.restore();
-    });
+    afterEach(() => sandbox.restore());
 
-    function getFinalErrorData_() {
-        return JSON.parse(fs.write.lastCall.args[1]);
-    }
+    const getFinalErrorData_ = () => JSON.parse(fs.write.lastCall.args[1]);
 
-    it('should sort errors by failed test name', function(){
-        var config = mkConfigStub(),
-            failCollector = new FailCollector(config),
-            errorData = mkErrorStub({
-                suite: {fullName: 'suite-fullname'},
-                state: {name: 'state-name'},
-                browserId: 'browserId'
-            }),
-            anotherErrorData = mkErrorStub({
-                suite: {fullName: 'another-suite'},
-                state: {name: 'another-state'},
-                browserId: 'another-browser'
-            });
+    it('should sort errors by failed test name', () => {
+        const config = mkConfigStub();
+        const failCollector = new FailCollector(config);
+
+        const errorData = mkErrorStub({
+            suite: {fullName: 'suite-fullname'},
+            state: {name: 'state-name'},
+            browserId: 'browserId'
+        });
+        const anotherErrorData = mkErrorStub({
+            suite: {fullName: 'another-suite'},
+            state: {name: 'another-state'},
+            browserId: 'another-browser'
+        });
+
         failCollector.addFail(errorData);
         failCollector.addFail(anotherErrorData);
 
         return failCollector.collect()
-            .then(function() {
-                var resultData = getFinalErrorData_();
+            .then(() => {
+                const resultData = getFinalErrorData_();
                 assert.property(resultData, 'suite-fullname.state-name.browserId');
                 assert.property(resultData, 'another-suite.another-state.another-browser');
             });
     });
 
-    describe('data filtering', function() {
-        var config, failCollector;
+    describe('data filtering', () => {
+        let config;
+        let failCollector;
 
-        beforeEach(function() {
+        beforeEach(() => {
             config = mkConfigStub({retry: 1});
             failCollector = new FailCollector(config);
+            fs.exists.returns(q.resolve(true));
         });
 
-        it('should include failed test to report if test was passed after retry', function() {
-            var errorData = mkDiffErrorStub();
+        it('should save screenshots for failed tests', () => {
+            const errorData = mkDiffErrorStub();
+
+            failCollector.addFail(errorData);
+            failCollector.addFail(errorData);
+
+            sandbox.stub(ImageError.prototype, 'save').returns(q.resolve());
+
+            return failCollector.collect()
+                .then(() => assert.calledTwice(ImageError.prototype.save));
+        });
+
+        it('should compare failed tests screenshots', () => {
+            const errorData = mkDiffErrorStub();
+            sandbox.stub(tempFS, 'resolveImagePath')
+                .onFirstCall().returns('/reference/path')
+                .onSecondCall().returns('/temp/path');
+
+            failCollector.addFail(errorData);
             failCollector.addFail(errorData);
 
             return failCollector.collect()
-                .then(function() {
-                    var resultData = getFinalErrorData_();
+                .then(() => assert.calledWith(imageProcessor.compare, '/reference/path', '/temp/path'));
+        });
+
+        it('should include failed test to report if test was passed after retry', () => {
+            const errorData = mkDiffErrorStub({
+                suite: {fullName: 'suite-fullname'},
+                state: {name: 'state-name'},
+                browserId: 'browserId'
+            });
+            failCollector.addFail(errorData);
+
+            return failCollector.collect()
+                .then(() => {
+                    const resultData = getFinalErrorData_();
                     assert.property(resultData, 'suite-fullname.state-name.browserId');
                 });
         });
 
-        it('should include failed test to report if images are not the same', function() {
-            var errorData = mkDiffErrorStub();
-            failCollector.addFail(errorData);
-            failCollector.addFail(errorData);
+        it('should include failed test to report if images are not the same', () => {
+            const errorData = mkDiffErrorStub({
+                suite: {fullName: 'suite-fullname'},
+                state: {name: 'state-name'},
+                browserId: 'browserId'
+            });
             imageProcessor.compare.returns(q(false));
 
+            failCollector.addFail(errorData);
+            failCollector.addFail(errorData);
+
             return failCollector.collect()
-                .then(function() {
-                    var resultData = getFinalErrorData_();
-                    assert.property(resultData, 'suite-fullname.state-name.browserId');
-                });
+                .then(() => assert.property(getFinalErrorData_(), 'suite-fullname.state-name.browserId'));
         });
 
-        it('should include failed test to report if error types are different', function() {
-            var diffErrorData = mkDiffErrorStub(),
-                stateErrorData = mkStateErrorStub();
+        it('should include failed test to report if error types are different', () => {
+            const diffErrorData = mkDiffErrorStub({
+                suite: {fullName: 'suite-fullname'},
+                state: {name: 'state-name'},
+                browserId: 'browserId'
+            });
+            const stateErrorData = mkStateErrorStub({
+                suite: {fullName: 'suite-fullname'},
+                state: {name: 'state-name'},
+                browserId: 'browserId'
+            });
+
             failCollector.addFail(diffErrorData);
             failCollector.addFail(stateErrorData);
 
             return failCollector.collect()
-                .then(function() {
-                    var resultData = getFinalErrorData_();
+                .then(() => {
+                    const resultData = getFinalErrorData_();
                     assert.property(resultData, 'suite-fullname.state-name.browserId');
                 });
         });
 
-        it('should not include to report tests that was failed all the time with the same diff error', function() {
-            var errorData = mkDiffErrorStub();
-            failCollector.addFail(errorData);
-            failCollector.addFail(errorData);
+        it('should not include to report tests that was failed all the time with the same diff error', () => {
+            const errorData = mkDiffErrorStub({
+                suite: {fullName: 'suite-fullname'},
+                state: {name: 'state-name'},
+                browserId: 'browserId'
+            });
             imageProcessor.compare.returns(q(true));
 
+            failCollector.addFail(errorData);
+            failCollector.addFail(errorData);
+
             return failCollector.collect()
-                .then(function() {
-                    var resultData = getFinalErrorData_();
+                .then(() => {
+                    const resultData = getFinalErrorData_();
                     assert.notProperty(resultData, 'suite-fullname.state-name.browserId');
                 });
         });
     });
 
-    it('should add to report formatted data', function(){
-        var config = mkConfigStub(),
-            failCollector = new FailCollector(config),
-            errorData = mkErrorStub({
-                suite: {fullName: 'suite-fullname'},
-                state: {name: 'state-name'},
-                browserId: 'browserId',
-                equal: false,
-                saveDiffTo: sinon.stub().returns(q())
-            });
-        sandbox.stub(ImageError.prototype, 'getData').returns({some: 'value'});
+    it('should add to report formatted data', () => {
+        const config = mkConfigStub({retry: 1});
+        const failCollector = new FailCollector(config);
+        const errorData = mkErrorStub({
+            suite: {fullName: 'suite-fullname'},
+            state: {name: 'state-name'},
+            browserId: 'browserId',
+            equal: false,
+            saveDiffTo: sinon.stub().returns(q())
+        });
 
+        imageProcessor.compare.returns(q(false));
+        sandbox.stub(ImageError.prototype, 'getData')
+            .onFirstCall().returns({some: 'value1'})
+            .onSecondCall().returns({another: 'value2'});
+
+        failCollector.addFail(errorData);
         failCollector.addFail(errorData);
 
         return failCollector.collect()
-            .then(function() {
-                var resultData = getFinalErrorData_();
+            .then(() => {
+                const resultData = getFinalErrorData_();
                 assert.deepEqual(resultData, {
-                    'suite-fullname.state-name.browserId': [{ some: 'value' }]
+                    'suite-fullname.state-name.browserId': [{some: 'value1'}, {another: 'value2'}]
                 });
             });
     });
 
-    it('should write formatted error data to the "faildump.json"', function() {
-        var config = mkConfigStub(),
-            failCollector = new FailCollector(config),
-            errorData = mkErrorStub({
-                suite: {fullName: 'suite-fullname'},
-                state: {name: 'state-name'},
-                browserId: 'browserId'
-            });
+    it('should write formatted error data to the "faildump.json"', () => {
+        const config = mkConfigStub();
+        const failCollector = new FailCollector(config);
+        const errorData = mkErrorStub({
+            suite: {fullName: 'suite-fullname'},
+            state: {name: 'state-name'},
+            browserId: 'browserId'
+        });
         sandbox.stub(BaseError.prototype, 'getData').returns({some: 'value'});
 
         failCollector.addFail(errorData);
 
         return failCollector.collect()
-            .then(function() {
+            .then(() => {
                 assert.calledWith(fs.write,
                     'faildump.json',
                     '{"suite-fullname.state-name.browserId":[{"some":"value"}]}'

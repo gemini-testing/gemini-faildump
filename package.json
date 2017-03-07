@@ -34,9 +34,8 @@
     "unit-test": "istanbul test _mocha -- --recursive test/lib"
   },
   "dependencies": {
-    "inherit": "~2.2.1",
     "lodash": "^3.10.1",
-    "looks-same": "2.2.2",
+    "looks-same": "^3.2.0",
     "q": "^1.1.2",
     "q-io": "^1.13.2",
     "temp": "^0.8.3",
