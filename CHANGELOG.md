@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.0
+
+* Don't save image when option "light" is enabled
+* Improved comparing diffs
+
+* major: Do not support node lower than 4.0
+
 ## 2.0.0
 
 * major: Add supporting of imagePath instead of image field in fail data

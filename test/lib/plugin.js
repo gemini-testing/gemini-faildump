@@ -1,47 +1,57 @@
 'use strict';
 
-var EventEmitter = require('events').EventEmitter,
-    FailCollector = require('../../lib/fail-collector'),
-    plugin = require('../../lib/plugin');
+const _ = require('lodash');
+const EventEmitter = require('events').EventEmitter;
+const FailCollector = require('../../lib/fail-collector');
+const plugin = require('../../lib/plugin');
 
-describe('plugin', function(){
-    var sandbox = sinon.sandbox.create();
+describe('plugin', () => {
+    const sandbox = sinon.sandbox.create();
+    const geminiEvents = {
+        END_RUNNER: 'endRunner',
+        RETRY: 'retry',
+        ERROR: 'err',
+        TEST_RESULT: 'testResult'
+    };
 
-    beforeEach(function() {
-        sandbox.stub(FailCollector.prototype);
-
+    beforeEach(() => {
         this.gemini = new EventEmitter();
         this.runner = new EventEmitter();
-        plugin(this.gemini);
-        this.gemini.emit('startRunner', this.runner);
+        sandbox.stub(FailCollector.prototype, 'addFail');
+        sandbox.stub(FailCollector.prototype, 'collect');
+
+        plugin(_.extend(this.gemini, {events: geminiEvents}));
     });
 
-    afterEach(function() {
-        sandbox.restore();
-    });
+    afterEach(() => sandbox.restore());
 
-    it('should add failed test to storage on "err" event', function() {
-        this.runner.emit('err');
+    it('should add failed test to storage on "ERROR" event', () => {
+        this.gemini.emit(geminiEvents.ERROR);
+
         assert.called(FailCollector.prototype.addFail);
     });
 
-    it('should add failed test to storage on "retry" event', function() {
-        this.runner.emit('retry');
+    it('should add failed test to storage on "RETRY" event', () => {
+        this.gemini.emit(geminiEvents.RETRY);
+
         assert.called(FailCollector.prototype.addFail);
     });
 
-    it('should add failed test to storage on "endTest" event if some diff found', function() {
-        this.runner.emit('endTest', {equal: false});
+    it('should add failed test to storage on "TEST_RESULT" event if some diff found', () => {
+        this.gemini.emit(geminiEvents.TEST_RESULT, {equal: false});
+
         assert.called(FailCollector.prototype.addFail);
     });
 
-    it('should not add failed test to storage on "endTest" event if no diff found', function() {
-        this.runner.emit('endTest', {equal: true});
+    it('should not add failed test to storage on "TEST_RESULT" event if no diff found', () => {
+        this.gemini.emit(geminiEvents.TEST_RESULT, {equal: true});
+
         assert.notCalled(FailCollector.prototype.addFail);
     });
 
-    it('should collect all fails on "end" event', function() {
-        this.runner.emit('end');
+    it('should collect all fails on "END_RUNNER" event', () => {
+        this.gemini.emit(geminiEvents.END_RUNNER);
+
         assert.called(FailCollector.prototype.collect);
     });
 });
