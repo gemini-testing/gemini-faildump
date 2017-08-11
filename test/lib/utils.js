@@ -1,6 +1,5 @@
 'use strict';
 
-const q = require('q');
 const _ = require('lodash');
 
 const errorDefaults = {
@@ -45,7 +44,7 @@ module.exports = {
 
         return _.defaults(opts, {
             equal: false,
-            saveDiffTo: sinon.stub().returns(q())
+            saveDiffTo: sinon.stub().resolves()
         }, errorDefaults);
     }
 };

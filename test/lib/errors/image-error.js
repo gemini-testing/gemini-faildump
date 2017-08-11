@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const q = require('q');
+const Promise = require('bluebird');
 
 const ImageError = require('../../../lib/errors/image-error');
 const BaseError = require('../../../lib/errors/base-error');
@@ -18,7 +18,7 @@ describe('errors/image-error', () => {
 
     beforeEach(() => {
         config = utils.mkConfigStub();
-        sandbox.stub(imageProcessor, 'pngToBase64').returns(q());
+        sandbox.stub(imageProcessor, 'pngToBase64').resolves();
     });
 
     afterEach(() => sandbox.restore());
@@ -65,7 +65,7 @@ describe('errors/image-error', () => {
                 light: false
             });
 
-            return q.resolve(new ImageError(opts.data, opts.config, {
+            return Promise.resolve(new ImageError(opts.data, opts.config, {
                 path: opts.data.path,
                 saveImg: opts.saveImg,
                 light: opts.light
@@ -73,7 +73,7 @@ describe('errors/image-error', () => {
         };
 
         it('should return extended data with "base64" key', () => {
-            imageProcessor.pngToBase64.returns(q.resolve('base64-value'));
+            imageProcessor.pngToBase64.resolves('base64-value');
 
             return mkImgErrorData_({light: false})
                 .then((error) => assert.equal(error.base64, 'base64-value'));

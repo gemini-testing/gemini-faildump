@@ -30,15 +30,15 @@
   },
   "scripts": {
     "test": "npm run lint && npm run unit-test",
-    "lint": "jshint . && jscs .",
+    "lint": "eslint .",
     "unit-test": "istanbul test _mocha -- --recursive test/lib"
   },
   "dependencies": {
     "gemini-configparser": "^1.0.0",
+    "bluebird": "^3.5.0",
+    "fs-extra": "^4.0.1",
     "lodash": "^3.10.1",
     "looks-same": "^3.2.0",
-    "q": "^1.1.2",
-    "q-io": "^1.13.2",
     "temp": "^0.8.3",
     "urijs": "^1.17.0"
   },
@@ -46,11 +46,12 @@
     "chai": "^3.4.1",
     "clear-require": "^1.0.1",
     "coveralls": "^2.11.4",
+    "eslint": "^4.16.0",
+    "eslint-config-gemini-testing": "^2.0.0",
     "istanbul": "^0.3.20",
-    "jscs": "^2.1.1",
-    "jshint": "^2.8.0",
     "mocha": "^2.3.3",
-    "sinon": "^1.16.1",
+    "proxyquire": "^1.8.0",
+    "sinon": "^4.2.2",
     "sinon-chai": "^2.8.0"
   }
 }

@@ -1,7 +1,6 @@
 'use strict';
 
-const q = require('q');
-const fs = require('q-io/fs');
+const fs = require('fs-extra');
 
 const FailCollector = require('../../lib/fail-collector');
 const BaseError = require('../../lib/errors/base-error');
@@ -20,13 +19,13 @@ describe('fail-collector', () => {
 
     beforeEach(() => {
         sandbox.stub(imageProcessor);
-        imageProcessor.pngToBase64.returns(q());
-        sandbox.stub(fs);
+        imageProcessor.pngToBase64.resolves();
+        sandbox.stub(fs, 'writeJson').resolves();
     });
 
     afterEach(() => sandbox.restore());
 
-    const getFinalErrorData_ = () => JSON.parse(fs.write.lastCall.args[1]);
+    const getFinalErrorData_ = () => fs.writeJson.lastCall.args[1];
 
     it('should sort errors by failed test name', () => {
         const config = mkConfigStub();
@@ -59,7 +58,7 @@ describe('fail-collector', () => {
         beforeEach(() => {
             config = mkConfigStub({retry: 1});
             failCollector = new FailCollector(config);
-            fs.exists.returns(q.resolve(true));
+            sandbox.stub(fs, 'exists').resolves(true);
         });
 
         it('should save screenshots for failed tests', () => {
@@ -68,7 +67,7 @@ describe('fail-collector', () => {
             failCollector.addFail(errorData);
             failCollector.addFail(errorData);
 
-            sandbox.stub(ImageError.prototype, 'save').returns(q.resolve());
+            sandbox.stub(ImageError.prototype, 'save').resolves();
 
             return failCollector.collect()
                 .then(() => assert.calledTwice(ImageError.prototype.save));
@@ -106,7 +105,7 @@ describe('fail-collector', () => {
                 state: {fullName: 'suite-fullname state-name'},
                 browserId: 'browserId'
             });
-            imageProcessor.compare.returns(q(false));
+            imageProcessor.compare.resolves(false);
 
             failCollector.addFail(errorData);
             failCollector.addFail(errorData);
@@ -140,7 +139,7 @@ describe('fail-collector', () => {
                 state: {fullName: 'suite-fullname state-name'},
                 browserId: 'browserId'
             });
-            imageProcessor.compare.returns(q(true));
+            imageProcessor.compare.resolves(true);
 
             failCollector.addFail(errorData);
             failCollector.addFail(errorData);
@@ -160,10 +159,10 @@ describe('fail-collector', () => {
             state: {fullName: 'suite-fullname state-name'},
             browserId: 'browserId',
             equal: false,
-            saveDiffTo: sinon.stub().returns(q())
+            saveDiffTo: sinon.stub().resolves()
         });
 
-        imageProcessor.compare.returns(q(false));
+        imageProcessor.compare.resolves(false);
         sandbox.stub(ImageError.prototype, 'getData')
             .onFirstCall().returns({some: 'value1'})
             .onSecondCall().returns({another: 'value2'});
@@ -193,9 +192,9 @@ describe('fail-collector', () => {
 
         return failCollector.collect()
             .then(() => {
-                assert.calledWith(fs.write,
+                assert.calledWith(fs.writeJson,
                     'faildump.json',
-                    '{"suite-fullname state-name.browserId":[{"some":"value"}]}'
+                    {'suite-fullname state-name.browserId': [{some: 'value'}]}
                 );
             });
     });

@@ -1,36 +1,31 @@
 'use strict';
 
-var q = require('q'),
-    imageProcessor = require('../../lib/image-processor'),
-    fs = require('q-io/fs');
+const fs = require('fs-extra');
+const proxyquire = require('proxyquire');
 
-describe('image-processor', function() {
-    var sandbox = sinon.sandbox.create();
+describe('image-processor', () => {
+    const sandbox = sinon.sandbox.create();
+    let imageProcessor;
+    const looksSameStub = sandbox.stub();
 
-    beforeEach(function() {
-        sandbox.stub(fs);
+    beforeEach(() => {
+        imageProcessor = proxyquire('../../lib/image-processor', {
+            'looks-same': looksSameStub
+        });
+        sandbox.stub(fs, 'readFile').resolves('base64');
     });
 
-    afterEach(function() {
-        sandbox.restore();
-    });
+    afterEach(() => sandbox.restore());
 
-    it('should generate base64 from image', function() {
-        fs.read.returns(q('base64'));
-
+    it('should generate base64 from image', () => {
         return imageProcessor.pngToBase64('imagePath')
-            .then(function(base64) {
-                assert.equal(base64, 'base64');
-            });
+            .then((base64) => assert.equal(base64, 'base64'));
     });
 
-    it('should compare images end return results', function() {
-        fs.read.returns(q('base64'));
-        sandbox.stub(q, 'nfcall').returns(q(true));
+    it('should compare images end return results', () => {
+        looksSameStub.yields(null, true);
 
         return imageProcessor.compare('path1', 'path2')
-            .then(function(isEqual) {
-                assert.ok(isEqual);
-            });
+            .then((isEqual) => assert.ok(isEqual));
     });
 });
