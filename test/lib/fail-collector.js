@@ -33,13 +33,11 @@ describe('fail-collector', () => {
         const failCollector = new FailCollector(config);
 
         const errorData = mkErrorStub({
-            suite: {fullName: 'suite-fullname'},
-            state: {name: 'state-name'},
+            state: {fullName: 'suite-fullname state-name'},
             browserId: 'browserId'
         });
         const anotherErrorData = mkErrorStub({
-            suite: {fullName: 'another-suite'},
-            state: {name: 'another-state'},
+            state: {fullName: 'another-suite another-state'},
             browserId: 'another-browser'
         });
 
@@ -49,8 +47,8 @@ describe('fail-collector', () => {
         return failCollector.collect()
             .then(() => {
                 const resultData = getFinalErrorData_();
-                assert.property(resultData, 'suite-fullname.state-name.browserId');
-                assert.property(resultData, 'another-suite.another-state.another-browser');
+                assert.property(resultData, 'suite-fullname state-name.browserId');
+                assert.property(resultData, 'another-suite another-state.another-browser');
             });
     });
 
@@ -91,8 +89,7 @@ describe('fail-collector', () => {
 
         it('should include failed test to report if test was passed after retry', () => {
             const errorData = mkDiffErrorStub({
-                suite: {fullName: 'suite-fullname'},
-                state: {name: 'state-name'},
+                state: {fullName: 'suite-fullname state-name'},
                 browserId: 'browserId'
             });
             failCollector.addFail(errorData);
@@ -100,14 +97,13 @@ describe('fail-collector', () => {
             return failCollector.collect()
                 .then(() => {
                     const resultData = getFinalErrorData_();
-                    assert.property(resultData, 'suite-fullname.state-name.browserId');
+                    assert.property(resultData, 'suite-fullname state-name.browserId');
                 });
         });
 
         it('should include failed test to report if images are not the same', () => {
             const errorData = mkDiffErrorStub({
-                suite: {fullName: 'suite-fullname'},
-                state: {name: 'state-name'},
+                state: {fullName: 'suite-fullname state-name'},
                 browserId: 'browserId'
             });
             imageProcessor.compare.returns(q(false));
@@ -116,18 +112,16 @@ describe('fail-collector', () => {
             failCollector.addFail(errorData);
 
             return failCollector.collect()
-                .then(() => assert.property(getFinalErrorData_(), 'suite-fullname.state-name.browserId'));
+                .then(() => assert.property(getFinalErrorData_(), 'suite-fullname state-name.browserId'));
         });
 
         it('should include failed test to report if error types are different', () => {
             const diffErrorData = mkDiffErrorStub({
-                suite: {fullName: 'suite-fullname'},
-                state: {name: 'state-name'},
+                state: {fullName: 'suite-fullname state-name'},
                 browserId: 'browserId'
             });
             const stateErrorData = mkStateErrorStub({
-                suite: {fullName: 'suite-fullname'},
-                state: {name: 'state-name'},
+                state: {fullName: 'suite-fullname state-name'},
                 browserId: 'browserId'
             });
 
@@ -137,14 +131,13 @@ describe('fail-collector', () => {
             return failCollector.collect()
                 .then(() => {
                     const resultData = getFinalErrorData_();
-                    assert.property(resultData, 'suite-fullname.state-name.browserId');
+                    assert.property(resultData, 'suite-fullname state-name.browserId');
                 });
         });
 
         it('should not include to report tests that was failed all the time with the same diff error', () => {
             const errorData = mkDiffErrorStub({
-                suite: {fullName: 'suite-fullname'},
-                state: {name: 'state-name'},
+                state: {fullName: 'suite-fullname state-name'},
                 browserId: 'browserId'
             });
             imageProcessor.compare.returns(q(true));
@@ -164,8 +157,7 @@ describe('fail-collector', () => {
         const config = mkConfigStub({retry: 1});
         const failCollector = new FailCollector(config);
         const errorData = mkErrorStub({
-            suite: {fullName: 'suite-fullname'},
-            state: {name: 'state-name'},
+            state: {fullName: 'suite-fullname state-name'},
             browserId: 'browserId',
             equal: false,
             saveDiffTo: sinon.stub().returns(q())
@@ -183,7 +175,7 @@ describe('fail-collector', () => {
             .then(() => {
                 const resultData = getFinalErrorData_();
                 assert.deepEqual(resultData, {
-                    'suite-fullname.state-name.browserId': [{some: 'value1'}, {another: 'value2'}]
+                    'suite-fullname state-name.browserId': [{some: 'value1'}, {another: 'value2'}]
                 });
             });
     });
@@ -192,8 +184,7 @@ describe('fail-collector', () => {
         const config = mkConfigStub();
         const failCollector = new FailCollector(config);
         const errorData = mkErrorStub({
-            suite: {fullName: 'suite-fullname'},
-            state: {name: 'state-name'},
+            state: {fullName: 'suite-fullname state-name'},
             browserId: 'browserId'
         });
         sandbox.stub(BaseError.prototype, 'getData').returns({some: 'value'});
@@ -204,7 +195,7 @@ describe('fail-collector', () => {
             .then(() => {
                 assert.calledWith(fs.write,
                     'faildump.json',
-                    '{"suite-fullname.state-name.browserId":[{"some":"value"}]}'
+                    '{"suite-fullname state-name.browserId":[{"some":"value"}]}'
                 );
             });
     });
