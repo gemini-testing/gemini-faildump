@@ -8,11 +8,8 @@ const mkConfigStub = utils.mkConfigStub;
 describe('errors/base-error', () => {
     it('should generate "name" property for error data', () => {
         const failedTestError = mkErrorStub({
-            suite: {
-                fullName: 'suite-fullname'
-            },
             state: {
-                name: 'state-name'
+                fullName: 'suite-fullname state-name'
             },
             browserId: 'browserId'
         });
@@ -20,7 +17,7 @@ describe('errors/base-error', () => {
 
         const failedTest = new BaseError(failedTestError, config);
 
-        assert.equal(failedTest.name, 'suite-fullname.state-name.browserId');
+        assert.equal(failedTest.name, 'suite-fullname state-name.browserId');
     });
 
     it('should get quota from gridUrl param', () => {

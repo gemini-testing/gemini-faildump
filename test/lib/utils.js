@@ -4,8 +4,7 @@ const q = require('q');
 const _ = require('lodash');
 
 const errorDefaults = {
-    suite: {fullName: 'suite-fullname'},
-    state: {name: 'state-name'},
+    state: {fullName: 'suite-fullname state-name'},
     browserId: 'browserId'
 };
 
