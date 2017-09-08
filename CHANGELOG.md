@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.0
+
+* major: Change id generation, do not concatenate suite and gemini by dot
+
 ## 3.0.0
 
 * Don't save image when option "light" is enabled
