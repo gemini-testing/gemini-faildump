@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.0
+
+* feat: add option `enabled`
+
 ## 4.0.0
 
 * major: Change id generation, do not concatenate suite and gemini by dot
