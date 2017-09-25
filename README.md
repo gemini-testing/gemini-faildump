@@ -10,15 +10,22 @@ normal and not included in the final report.
 
 ## Configuration
 
-Set the configuration to your `.gemini.yml`
+Set the configuration to your `.gemini.js`
 
-```yml
-system:
-  plugins:
-    gemini-faildump:
-      light: true
+```js
+module.exports = {
+    system: {
+        plugins: {
+            'gemini-faildump': {
+                enabled: true,
+                light: true
+            }
+        }
+    }
+};
 ```
 
 ## Options
 
+ - `enabled` - switch on/off the plugin; the plugin is switched on by default.
  - `light` - switch on this option to avoid adding base64 image to report.
