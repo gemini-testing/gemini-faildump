@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.0.0
+
+* feat: use `--faildump-` as a cli prefix for plugin options
+* drop node@4- support
+
 ## 4.1.0
 
 * feat: add option `enabled`
