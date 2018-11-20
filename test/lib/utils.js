@@ -35,7 +35,7 @@ module.exports = {
 
         return _.defaults(opts, {
             name: 'StateError',
-            imagePath: '/some/path/to/image'
+            img: {path: '/some/path/to/image'}
         }, errorDefaults);
     },
 
