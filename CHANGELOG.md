@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.0
+
+feat: support the changed field name "imagePath" -> "img.path"
+
 ## 5.0.0
 
 * feat: use `--faildump-` as a cli prefix for plugin options
