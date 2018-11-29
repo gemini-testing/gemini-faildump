@@ -96,8 +96,8 @@ describe('errors/image-error', () => {
                 .then(() => assert.calledOnce(BaseError.prototype.getData));
         });
 
-        it('should use imagePath for converting failed image to base64', () => {
-            return mkImgErrorData_({data: mkStateErrorStub({imagePath: '/path/test'})})
+        it('should use "img.path" for converting failed image to base64', () => {
+            return mkImgErrorData_({data: mkStateErrorStub({img: {path: '/path/test'}})})
                 .then(() => assert.calledWith(imageProcessor.pngToBase64, '/path/test'));
         });
     });
